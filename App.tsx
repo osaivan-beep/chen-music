@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, ReactNode, Component } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { Header } from './components/Header';
 import { Carousel } from './components/Carousel';
 import { MusicPlayer } from './components/MusicPlayer';
@@ -9,39 +8,41 @@ import { Footer } from './components/Footer';
 import { INITIAL_CAROUSEL, INITIAL_TRACKS, ADMIN_PASSWORD } from './constants';
 import { CarouselImage, MusicTrack } from './types';
 
-// 更新版本號至 v17 確保使用者看到的是最新設定的網址
-const STORAGE_KEY_IMAGES = 'chen_music_carousel_v17';
-const STORAGE_KEY_TRACKS = 'chen_music_tracks_v17';
+// 更新版本號至 v18，確保使用者能看到修正後的 GitHub 圖片路徑
+const STORAGE_KEY_IMAGES = 'chen_music_carousel_v18';
+const STORAGE_KEY_TRACKS = 'chen_music_tracks_v18';
 
 interface ErrorBoundaryProps { children?: ReactNode; }
 interface ErrorBoundaryState { hasError: boolean; }
 
-// Fixed: Using React.Component and providing an explicit constructor to resolve 'props' visibility in TypeScript
+/**
+ * FIX: Using class property initialization and destructuring to resolve TypeScript visibility issues for state and props.
+ */
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
+  state: ErrorBoundaryState = { hasError: false };
 
   static getDerivedStateFromError(): ErrorBoundaryState {
     return { hasError: true };
   }
 
   render() {
-    if (this.state.hasError) {
+    const { hasError } = this.state;
+    const { children } = this.props;
+
+    if (hasError) {
       return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6 text-center">
-          <h1 className="text-2xl font-serif mb-4">系統資源載入異常</h1>
+          <h1 className="text-2xl font-serif mb-4 text-amber-500">系統資源載入異常</h1>
           <button 
             onClick={() => { localStorage.clear(); window.location.reload(); }}
-            className="px-8 py-3 bg-amber-500 text-black rounded-full font-bold uppercase tracking-widest text-xs"
+            className="px-8 py-3 bg-amber-500 text-black rounded-full font-bold uppercase tracking-widest text-xs hover:bg-white transition-all"
           >
             重置並恢復
           </button>
         </div>
       );
     }
-    return this.props.children;
+    return children;
   }
 }
 
@@ -54,10 +55,10 @@ function App() {
 
   useEffect(() => {
     try {
-      // 檢查舊版快取並清理 (針對 v16 或更早版本)
-      const oldKeys = Object.keys(localStorage);
-      oldKeys.forEach(key => {
-        if (key.startsWith('chen_music') && !key.includes('v17')) {
+      // 清理舊版本數據，避免污染新版路徑
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('chen_music') && !key.includes('v18')) {
           localStorage.removeItem(key);
         }
       });
@@ -115,8 +116,10 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col bg-[#050505]">
+        {/* 背景氛圍光 */}
         <div className="fixed inset-0 pointer-events-none z-0">
-          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-amber-500/5 blur-[150px] rounded-full" />
+          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-amber-500/5 blur-[120px] rounded-full animate-pulse" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-white/2 blur-[100px] rounded-full" />
         </div>
 
         <Header 

@@ -2,10 +2,9 @@
 import { MusicTrack, CarouselImage } from './types';
 
 /**
- * 圖片連結指向您的 GitHub: smile584421-chen/chen-music
- * 使用英文檔名避免編碼問題
+ * 根據您的截圖，GitHub 使用者名稱為 osaivan-beep
  */
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/smile584421-chen/chen-music/main/';
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/osaivan-beep/chen-music/main/';
 
 export const INITIAL_CAROUSEL: CarouselImage[] = [
   { 
