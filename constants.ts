@@ -3,33 +3,16 @@ import { MusicTrack, CarouselImage } from './types';
 
 /**
  * 根據您的截圖，GitHub 使用者名稱為 osaivan-beep
+ * 重要：請確保 GitHub 倉庫 'chen-music' 已設置為 Public，否則圖片連結會失效。
  */
 const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/osaivan-beep/chen-music/main/';
 
 export const INITIAL_CAROUSEL: CarouselImage[] = [
   { 
-    id: 'img_harp', 
-    url: `${GITHUB_RAW_BASE}chen-p6.jpg`, 
-    title: '豎琴魅影', 
-    subtitle: 'Phantom of the Harp' 
-  },
-  { 
-    id: 'img_piano', 
-    url: `${GITHUB_RAW_BASE}chen-p5.jpg`, 
-    title: '指尖的舞蹈', 
-    subtitle: 'Dance on Fingertips' 
-  },
-  { 
-    id: 'img_flute', 
-    url: `${GITHUB_RAW_BASE}chen-p4.jpg`, 
-    title: '晨曦的長笛', 
-    subtitle: 'Flute in the Morning Mist' 
-  },
-  { 
-    id: 'img_erhu', 
-    url: `${GITHUB_RAW_BASE}chen-p3.jpg`, 
-    title: '國樂風華', 
-    subtitle: 'Heritage of National Music' 
+    id: 'img_cello', 
+    url: `${GITHUB_RAW_BASE}chen-p1.jpg`, 
+    title: '大提琴的沉思', 
+    subtitle: 'Cello\'s Meditation' 
   },
   { 
     id: 'img_violin', 
@@ -38,10 +21,28 @@ export const INITIAL_CAROUSEL: CarouselImage[] = [
     subtitle: 'Song of the Violin' 
   },
   { 
-    id: 'img_cello', 
-    url: `${GITHUB_RAW_BASE}chen-p1.jpg`, 
-    title: '大提琴的沉思', 
-    subtitle: 'Cello\'s Meditation' 
+    id: 'img_erhu', 
+    url: `${GITHUB_RAW_BASE}chen-p3.jpg`, 
+    title: '國樂風華', 
+    subtitle: 'Heritage of National Music' 
+  },
+  { 
+    id: 'img_flute', 
+    url: `${GITHUB_RAW_BASE}chen-p4.jpg`, 
+    title: '晨曦的長笛', 
+    subtitle: 'Flute in the Morning Mist' 
+  },
+  { 
+    id: 'img_piano', 
+    url: `${GITHUB_RAW_BASE}chen-p5.jpg`, 
+    title: '指尖的舞蹈', 
+    subtitle: 'Dance on Fingertips' 
+  },
+  { 
+    id: 'img_harp', 
+    url: `${GITHUB_RAW_BASE}chen-p6.jpg`, 
+    title: '豎琴魅影', 
+    subtitle: 'Phantom of the Harp' 
   },
 ];
 
@@ -54,7 +55,7 @@ export const INITIAL_TRACKS: MusicTrack[] = [
     artist: '禎真音樂',
     category: '冥想',
     url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-    coverUrl: `${GITHUB_RAW_BASE}chen-p6.jpg`
+    coverUrl: `${GITHUB_RAW_BASE}chen-p1.jpg`
   },
   {
     id: 't2',

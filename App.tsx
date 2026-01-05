@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode, Component } from 'react';
 import { Header } from './components/Header';
 import { Carousel } from './components/Carousel';
 import { MusicPlayer } from './components/MusicPlayer';
@@ -8,18 +8,19 @@ import { Footer } from './components/Footer';
 import { INITIAL_CAROUSEL, INITIAL_TRACKS, ADMIN_PASSWORD } from './constants';
 import { CarouselImage, MusicTrack } from './types';
 
-// 更新版本號至 v18，確保使用者能看到修正後的 GitHub 圖片路徑
-const STORAGE_KEY_IMAGES = 'chen_music_carousel_v18';
-const STORAGE_KEY_TRACKS = 'chen_music_tracks_v18';
+// 更新版本號至 v19，強制重置本地快取以讀取 constants.ts 中的最新排序與路徑
+const STORAGE_KEY_IMAGES = 'chen_music_carousel_v19';
+const STORAGE_KEY_TRACKS = 'chen_music_tracks_v19';
 
 interface ErrorBoundaryProps { children?: ReactNode; }
 interface ErrorBoundaryState { hasError: boolean; }
 
-/**
- * FIX: Using class property initialization and destructuring to resolve TypeScript visibility issues for state and props.
- */
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { hasError: false };
+// Use Component from react and explicit constructor to fix potential TypeScript inference issue with 'props'
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
   static getDerivedStateFromError(): ErrorBoundaryState {
     return { hasError: true };
@@ -55,10 +56,10 @@ function App() {
 
   useEffect(() => {
     try {
-      // 清理舊版本數據，避免污染新版路徑
+      // 自動清理舊版 v18 以前的數據，確保正確的路徑被加載
       const keys = Object.keys(localStorage);
       keys.forEach(key => {
-        if (key.startsWith('chen_music') && !key.includes('v18')) {
+        if (key.startsWith('chen_music') && !key.includes('v19')) {
           localStorage.removeItem(key);
         }
       });
@@ -116,7 +117,6 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col bg-[#050505]">
-        {/* 背景氛圍光 */}
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-amber-500/5 blur-[120px] rounded-full animate-pulse" />
           <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-white/2 blur-[100px] rounded-full" />
