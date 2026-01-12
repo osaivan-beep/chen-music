@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, AlertCircle, Loader2 } from 'lucide-react';
 import { MusicTrack } from '../types';
 
 interface MusicPlayerProps {
@@ -12,6 +12,8 @@ interface MusicPlayerProps {
 export const MusicPlayer: React.FC<MusicPlayerProps> = ({ tracks, externalControl, onPlaybackChange }) => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const displayTracks = tracks.slice(0, 12);
@@ -21,18 +23,40 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ tracks, externalContro
     if (externalControl !== undefined) setIsPlaying(externalControl);
   }, [externalControl]);
 
+  // 當音軌改變時重新載入
   useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying && currentTrack) {
-        audioRef.current.play().catch(() => {
+    if (audioRef.current && currentTrack) {
+      setIsLoading(true);
+      setHasError(false);
+      audioRef.current.load(); // 強制瀏覽器重新載入新 src
+      
+      if (isPlaying) {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error("Playback failed for URL:", currentTrack.url, error);
             setIsPlaying(false);
             onPlaybackChange?.(false);
+          });
+        }
+      }
+    }
+  }, [currentTrackIndex]);
+
+  // 當播放/暫停狀態改變時
+  useEffect(() => {
+    if (audioRef.current && currentTrack) {
+      if (isPlaying) {
+        audioRef.current.play().catch((err) => {
+          console.error("Audio play error:", err);
+          setIsPlaying(false);
+          onPlaybackChange?.(false);
         });
       } else {
         audioRef.current.pause();
       }
     }
-  }, [isPlaying, currentTrackIndex, currentTrack]);
+  }, [isPlaying]);
 
   const handleTrackSelect = (idx: number) => {
     if (currentTrackIndex === idx) {
@@ -64,7 +88,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ tracks, externalContro
         </div>
       </div>
 
-      {/* 歌曲清單 - 增加留白與極細線條 */}
+      {/* 歌曲清單 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24 gap-y-0 px-4 md:px-20 border-t border-white/[0.03]">
         {displayTracks.map((track, idx) => (
           <button 
@@ -111,27 +135,55 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ tracks, externalContro
 
       {/* 底部播放器 */}
       {currentTrack && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-[92%] max-w-2xl z-[100] bg-black/80 backdrop-blur-3xl border border-white/[0.08] rounded-full p-2.5 flex items-center gap-6 shadow-[0_40px_100px_rgba(0,0,0,0.9)] animate-fade-up">
-          <audio ref={audioRef} src={currentTrack.url} onEnded={() => setCurrentTrackIndex((currentTrackIndex! + 1) % displayTracks.length)} />
-          <div className="relative shrink-0 overflow-hidden rounded-full ml-1">
-            <img src={currentTrack.coverUrl} className={`w-12 h-12 object-cover transition-all duration-[4s] ${isPlaying ? 'scale-110 rotate-6' : 'grayscale opacity-30'}`} />
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-[92%] max-w-2xl z-[100] bg-black/90 backdrop-blur-3xl border border-white/[0.1] rounded-full p-2.5 flex items-center gap-6 shadow-[0_40px_100px_rgba(0,0,0,0.9)] animate-fade-up">
+          <audio 
+            ref={audioRef} 
+            src={currentTrack.url} 
+            onEnded={() => setCurrentTrackIndex((currentTrackIndex! + 1) % displayTracks.length)}
+            onCanPlay={() => setIsLoading(false)}
+            onWaiting={() => setIsLoading(true)}
+            onError={(e) => {
+              console.error("Audio element error on URL:", currentTrack.url, e);
+              setIsLoading(false);
+              setHasError(true);
+              setIsPlaying(false);
+              onPlaybackChange?.(false);
+            }}
+          />
+          <div className="relative shrink-0 overflow-hidden rounded-full ml-1 bg-neutral-900">
+            <img 
+              src={currentTrack.coverUrl} 
+              className={`w-12 h-12 object-cover transition-all duration-[4s] ${isPlaying ? 'scale-110 rotate-6' : 'grayscale opacity-30'}`} 
+              onError={(e) => (e.currentTarget.src = 'https://placehold.co/100x100/000/fff?text=Music')}
+            />
           </div>
           <div className="flex-grow overflow-hidden px-2">
             <p className="text-white text-[12px] font-serif font-light truncate tracking-[0.15em] mb-1">{currentTrack.title}</p>
             <div className="flex items-center gap-3">
-               <span className="text-neutral-600 text-[8px] tracking-[0.3em] uppercase font-bold italic">Playing</span>
-               <div className="flex gap-1 items-center">
-                  <div className="w-1 h-1 rounded-full bg-white/10 animate-pulse" />
-                  <div className="w-1 h-1 rounded-full bg-white/20 animate-pulse delay-75" />
-                  <div className="w-1 h-1 rounded-full bg-white/10 animate-pulse delay-150" />
-               </div>
+               {hasError ? (
+                 <span className="text-red-500 text-[8px] tracking-[0.3em] uppercase font-bold italic flex items-center gap-1">
+                   <AlertCircle size={8} /> File Not Found
+                 </span>
+               ) : (
+                 <>
+                   <span className="text-neutral-600 text-[8px] tracking-[0.3em] uppercase font-bold italic">
+                     {isLoading ? 'Buffering' : 'Playing'}
+                   </span>
+                   <div className="flex gap-1 items-center">
+                      <div className={`w-1 h-1 rounded-full bg-white/20 ${isLoading ? 'animate-bounce' : 'animate-pulse'}`} />
+                      <div className={`w-1 h-1 rounded-full bg-white/40 ${isLoading ? 'animate-bounce delay-75' : 'animate-pulse delay-75'}`} />
+                      <div className={`w-1 h-1 rounded-full bg-white/20 ${isLoading ? 'animate-bounce delay-150' : 'animate-pulse delay-150'}`} />
+                   </div>
+                 </>
+               )}
             </div>
           </div>
           <button 
             onClick={() => setIsPlaying(!isPlaying)}
-            className="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center transition-all shrink-0 hover:bg-neutral-200 group mr-1 shadow-xl"
+            disabled={hasError}
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shrink-0 group mr-1 shadow-xl ${hasError ? 'bg-neutral-800 text-neutral-600 cursor-not-allowed' : 'bg-white text-black hover:bg-neutral-200'}`}
           >
-            {isPlaying ? <Pause size={16} strokeWidth={2} /> : <Play size={16} strokeWidth={2} className="ml-1" />}
+            {isLoading ? <Loader2 size={16} className="animate-spin" /> : (isPlaying ? <Pause size={16} strokeWidth={2} /> : <Play size={16} strokeWidth={2} className="ml-1" />)}
           </button>
         </div>
       )}
