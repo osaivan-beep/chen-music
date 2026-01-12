@@ -47,8 +47,7 @@ export const Carousel: React.FC<CarouselProps> = ({ images }) => {
 
   return (
     <section className="relative pt-36 pb-12 overflow-hidden bg-[#000]">
-      {/* 裝飾性背景文字 - 模仿 ivan-ai 风格 */}
-      <div className="absolute top-20 left-12 pointer-events-none opacity-[0.03] select-none">
+      <div className="absolute top-20 left-12 pointer-events-none opacity-[0.03] select-none text-white">
         <span className="text-[15vw] font-serif font-black tracking-tighter uppercase leading-none block">Gallery</span>
       </div>
 
@@ -59,19 +58,17 @@ export const Carousel: React.FC<CarouselProps> = ({ images }) => {
         {images.slice(0, 6).map((image, idx) => (
           <div
             key={image.id}
-            className="flex-none w-[88vw] md:w-[560px] aspect-[4/5] relative rounded-[2px] overflow-hidden snap-center group border border-white/[0.03] bg-neutral-900 transition-all duration-1000"
+            className="flex-none w-[88vw] md:w-[560px] aspect-[4/5] relative rounded-[2px] overflow-hidden snap-center group border border-white/[0.05] bg-neutral-900/50 transition-all duration-1000"
           >
-            {/* 圖片層 - 緩慢縮放效果 */}
             <div className="absolute inset-0 overflow-hidden">
               <img
                 src={image.url}
                 alt={image.title}
-                className="w-full h-full object-cover img-zoom opacity-50 group-hover:opacity-100 transition-all duration-[4s] ease-out scale-105 group-hover:scale-110"
+                className="w-full h-full object-cover img-zoom opacity-70 group-hover:opacity-100 transition-all duration-[4s] ease-out scale-105 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80 opacity-90 group-hover:opacity-40 transition-opacity duration-[2s]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/90 opacity-80 group-hover:opacity-30 transition-opacity duration-[2s]" />
             </div>
 
-            {/* 文字與資訊 - 極簡風格 */}
             <div className="absolute inset-0 p-10 md:p-12 flex flex-col justify-end z-20">
               <div className="overflow-hidden">
                 <p className="text-[10px] text-amber-500/80 tracking-[0.6em] uppercase font-bold mb-3 transform translate-y-10 group-hover:translate-y-0 transition-transform duration-1000">
@@ -83,15 +80,13 @@ export const Carousel: React.FC<CarouselProps> = ({ images }) => {
               </div>
             </div>
             
-            {/* 編號裝飾 */}
-            <div className="absolute top-8 right-8 text-[10px] font-mono text-white/20 tracking-widest">
+            <div className="absolute top-8 right-8 text-[10px] font-mono text-white/40 tracking-widest">
               {String(idx + 1).padStart(2, '0')} / 06
             </div>
           </div>
         ))}
       </div>
 
-      {/* 進度控制條 */}
       <div className="mt-4 max-w-[1400px] mx-auto px-10 flex items-center justify-center">
         <div className="flex gap-4 items-center">
            {images.slice(0, 6).map((_, i) => (
