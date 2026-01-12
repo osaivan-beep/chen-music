@@ -35,11 +35,12 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6 text-center">
           <h1 className="text-2xl font-serif mb-4">系統資源載入異常</h1>
+          <p className="text-neutral-500 mb-8 text-sm tracking-widest uppercase">已偵測到舊版快取衝突</p>
           <button 
             onClick={() => { localStorage.clear(); window.location.reload(); }} 
-            className="px-8 py-3 bg-white text-black rounded-full font-bold uppercase tracking-widest text-xs"
+            className="px-8 py-3 bg-white text-black rounded-full font-bold uppercase tracking-widest text-xs hover:bg-amber-500 transition-colors"
           >
-            重置並恢復
+            清除緩存並強制重置
           </button>
         </div>
       );
@@ -54,16 +55,17 @@ function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
 
+  // 使用 v25 版本號來跳過之前所有錯誤的 localStorage
+  const VERSION_KEY = 'v25';
+
   useEffect(() => {
     try {
-      // 提升版本號至 v21 以清除 v20 的舊快取
-      const savedImages = localStorage.getItem('chen_music_carousel_v21');
-      const savedTracks = localStorage.getItem('chen_music_tracks_v21');
+      const savedImages = localStorage.getItem(`chen_music_carousel_${VERSION_KEY}`);
+      const savedTracks = localStorage.getItem(`chen_music_tracks_${VERSION_KEY}`);
       
       if (savedImages) {
         setImages(JSON.parse(savedImages));
       } else {
-        // 如果沒有 v21，則強制載入 Initial
         setImages(INITIAL_CAROUSEL);
       }
       
@@ -79,12 +81,12 @@ function App() {
 
   const handleUpdateImages = (newImages: CarouselImage[]) => {
     setImages(newImages);
-    localStorage.setItem('chen_music_carousel_v21', JSON.stringify(newImages));
+    localStorage.setItem(`chen_music_carousel_${VERSION_KEY}`, JSON.stringify(newImages));
   };
 
   const handleUpdateTracks = (newTracks: MusicTrack[]) => {
     setTracks(newTracks);
-    localStorage.setItem('chen_music_tracks_v21', JSON.stringify(newTracks));
+    localStorage.setItem(`chen_music_tracks_${VERSION_KEY}`, JSON.stringify(newTracks));
   };
 
   return (
