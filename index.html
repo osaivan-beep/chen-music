@@ -6,68 +6,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>禎真音樂 | Soul Resonance</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;300;400;700&family=Inter:wght@100;300;400;600&family=Zhi+Mang+Xing&family=Great+Vibes&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;300;400;700&family=Inter:wght@100;300;400;600&display=swap" rel="stylesheet">
     <style>
       html, body {
         height: 100%;
         margin: 0;
         padding: 0;
+        background-color: #050505;
+        scrollbar-gutter: stable;
       }
       body {
         font-family: 'Inter', 'Noto Sans TC', sans-serif;
-        background-color: #050505;
-        color: #888888;
+        color: #888;
         overflow-x: hidden;
-        overflow-y: auto; /* 明確允許垂直滾動 */
-        -webkit-overflow-scrolling: touch;
       }
       .font-serif { font-family: 'Noto Serif TC', serif; }
       
       /* 高級感漸層文字 */
-      .text-premium-silver {
-        background: linear-gradient(180deg, #FFFFFF 0%, #A0A0A0 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-      
       .text-gold-enhanced {
         background: linear-gradient(to bottom, #f0e2c6 0%, #b89e6e 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
 
-      /* 管理頁面列表專用的滾動條樣式，使其美觀但可見 */
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 4px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.02);
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-      }
-
-      /* 隱藏主頁輪播的滾動條 */
+      /* 隱藏捲動條但保留功能 */
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+      .custom-scrollbar::-webkit-scrollbar { width: 2px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+
       @keyframes fade-up {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: translateY(30px); filter: blur(10px); }
+        to { opacity: 1; transform: translateY(0); filter: blur(0); }
       }
       .animate-fade-up {
-        animation: fade-up 0.8s ease-out forwards;
+        animation: fade-up 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
-      
-      .animate-spin-slow {
-        animation: spin 8s linear infinite;
+
+      /* 電影感緩慢縮放 */
+      .img-zoom {
+        transition: transform 12s cubic-bezier(0.2, 0, 0, 1);
       }
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+      .group:hover .img-zoom {
+        transform: scale(1.1);
+      }
+
+      /* 頁面揭幕動畫 */
+      @keyframes reveal {
+        0% { transform: scaleY(1); }
+        100% { transform: scaleY(0); }
+      }
+      .page-reveal {
+        position: fixed;
+        inset: 0;
+        background: #050505;
+        z-index: 9999;
+        transform-origin: top;
+        animation: reveal 1.2s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+        animation-delay: 0.3s;
+        pointer-events: none;
       }
     </style>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div class="page-reveal"></div>
+    <div id="root"></div>
     <script type="importmap">
     {
       "imports": {
@@ -79,9 +85,7 @@
       }
     }
     </script>
-  </head>
-  <body>
-    <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
-  </body>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>

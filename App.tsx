@@ -1,151 +1,119 @@
-import React, { useState, useEffect, ReactNode, Component } from 'react';
+
+import React, { useState, useEffect, ReactNode } from 'react';
 import { Header } from './components/Header';
 import { Carousel } from './components/Carousel';
 import { MusicPlayer } from './components/MusicPlayer';
-import { AdminPanel } from './components/AdminPanel';
 import { PlatformLinks } from './components/PlatformLinks';
 import { Footer } from './components/Footer';
-import { INITIAL_CAROUSEL, INITIAL_TRACKS, ADMIN_PASSWORD } from './constants';
+import { AdminPanel } from './components/AdminPanel';
+import { INITIAL_CAROUSEL, INITIAL_TRACKS } from './constants';
 import { CarouselImage, MusicTrack } from './types';
 
-// 更新版本號至 v19，強制重置本地快取以讀取 constants.ts 中的最新排序與路徑
-const STORAGE_KEY_IMAGES = 'chen_music_carousel_v19';
-const STORAGE_KEY_TRACKS = 'chen_music_tracks_v19';
+interface ErrorBoundaryProps {
+  children?: ReactNode;
+}
 
-interface ErrorBoundaryProps { children?: ReactNode; }
-interface ErrorBoundaryState { hasError: boolean; }
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
 
-// Use Component from react and explicit constructor to fix potential TypeScript inference issue with 'props'
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+/**
+ * ErrorBoundary class component to catch rendering errors.
+ */
+// Fix: Use React.Component to ensure inherited properties like 'props' and 'state' are correctly recognized by TypeScript.
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly declare state at the class level to resolve "Property 'state' does not exist" errors.
+  state: ErrorBoundaryState = { hasError: false };
+
+  // Fix: Explicitly declare props at the class level to resolve "Property 'props' does not exist" errors.
+  props: ErrorBoundaryProps;
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.props = props;
   }
 
-  static getDerivedStateFromError(): ErrorBoundaryState {
+  // Static getDerivedStateFromError correctly updates state when an error is caught.
+  static getDerivedStateFromError(_error: any): ErrorBoundaryState {
     return { hasError: true };
   }
-
-  render() {
-    const { hasError } = this.state;
-    const { children } = this.props;
-
-    if (hasError) {
+  
+  render(): ReactNode {
+    // Fix: Accessing state inherited from React.Component now recognized by TypeScript.
+    if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6 text-center">
-          <h1 className="text-2xl font-serif mb-4 text-amber-500">系統資源載入異常</h1>
+          <h1 className="text-2xl font-serif mb-4">系統資源載入異常</h1>
           <button 
-            onClick={() => { localStorage.clear(); window.location.reload(); }}
-            className="px-8 py-3 bg-amber-500 text-black rounded-full font-bold uppercase tracking-widest text-xs hover:bg-white transition-all"
+            onClick={() => { localStorage.clear(); window.location.reload(); }} 
+            className="px-8 py-3 bg-white text-black rounded-full font-bold uppercase tracking-widest text-xs"
           >
             重置並恢復
           </button>
         </div>
       );
     }
-    return children;
+    // Fix: Accessing props inherited from React.Component now recognized by TypeScript.
+    return this.props.children;
   }
 }
 
 function App() {
   const [images, setImages] = useState<CarouselImage[]>(INITIAL_CAROUSEL);
   const [tracks, setTracks] = useState<MusicTrack[]>(INITIAL_TRACKS);
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isGlobalMusicOn, setIsGlobalMusicOn] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
 
   useEffect(() => {
     try {
-      // 自動清理舊版 v18 以前的數據，確保正確的路徑被加載
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.startsWith('chen_music') && !key.includes('v19')) {
-          localStorage.removeItem(key);
-        }
-      });
-
-      const savedImages = localStorage.getItem(STORAGE_KEY_IMAGES);
-      const savedTracks = localStorage.getItem(STORAGE_KEY_TRACKS);
-      
-      if (savedImages) {
-        const parsed = JSON.parse(savedImages);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setImages(parsed);
-        } else {
-          setImages(INITIAL_CAROUSEL);
-        }
-      } else {
-        setImages(INITIAL_CAROUSEL);
-      }
-
-      if (savedTracks) {
-        const parsed = JSON.parse(savedTracks);
-        if (Array.isArray(parsed) && parsed.length > 0) setTracks(parsed);
-      }
+      const savedImages = localStorage.getItem('chen_music_carousel_v19');
+      const savedTracks = localStorage.getItem('chen_music_tracks_v19');
+      if (savedImages) setImages(JSON.parse(savedImages));
+      if (savedTracks) setTracks(JSON.parse(savedTracks));
     } catch (e) {
-      setImages(INITIAL_CAROUSEL);
+      console.error("LocalStorage load error:", e);
     }
   }, []);
 
-  useEffect(() => {
-    document.body.style.overflow = showAdmin ? 'hidden' : 'auto';
-  }, [showAdmin]);
+  const handleUpdateImages = (newImages: CarouselImage[]) => {
+    setImages(newImages);
+    localStorage.setItem('chen_music_carousel_v19', JSON.stringify(newImages));
+  };
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_IMAGES, JSON.stringify(images));
-      localStorage.setItem(STORAGE_KEY_TRACKS, JSON.stringify(tracks));
-    } catch (e) {
-      console.warn("Storage write error");
-    }
-  }, [images, tracks]);
-
-  const handleAdminClick = () => {
-    if (isAuthorized) {
-      setShowAdmin(true);
-    } else {
-      const password = prompt('管理員驗證：');
-      if (password === ADMIN_PASSWORD) {
-        setIsAuthorized(true);
-        setShowAdmin(true);
-      } else if (password !== null) {
-        alert('密碼錯誤');
-      }
-    }
+  const handleUpdateTracks = (newTracks: MusicTrack[]) => {
+    setTracks(newTracks);
+    localStorage.setItem('chen_music_tracks_v19', JSON.stringify(newTracks));
   };
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen flex flex-col bg-[#050505]">
-        <div className="fixed inset-0 pointer-events-none z-0">
-          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-amber-500/5 blur-[120px] rounded-full animate-pulse" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-white/2 blur-[100px] rounded-full" />
-        </div>
-
+      <div className="min-h-screen flex flex-col bg-[#000000] text-neutral-300">
         <Header 
-          onAdminClick={handleAdminClick} 
-          isAdmin={isAuthorized} 
-          isMusicPlaying={isGlobalMusicOn}
-          onToggleMusic={() => setIsGlobalMusicOn(!isGlobalMusicOn)}
+          onAdminClick={() => setIsAdminOpen(true)} 
+          isAdmin={isAdminOpen}
+          isMusicPlaying={isMusicPlaying}
+          onToggleMusic={() => setIsMusicPlaying(!isMusicPlaying)}
         />
-        
         <main className="flex-grow relative z-10">
           <Carousel images={images} />
           <MusicPlayer 
-             tracks={tracks} 
-             externalControl={isGlobalMusicOn} 
-             onPlaybackChange={setIsGlobalMusicOn} 
+            tracks={tracks} 
+            externalControl={isMusicPlaying}
+            onPlaybackChange={setIsMusicPlaying}
           />
-          <PlatformLinks />
+          <div className="pb-10">
+            <PlatformLinks />
+          </div>
         </main>
         <Footer />
-        {showAdmin && (
+
+        {isAdminOpen && (
           <AdminPanel 
-            images={images} 
+            images={images}
             tracks={tracks}
-            onUpdateImages={setImages}
-            onUpdateTracks={setTracks}
-            onClose={() => setShowAdmin(false)}
+            onUpdateImages={handleUpdateImages}
+            onUpdateTracks={handleUpdateTracks}
+            onClose={() => setIsAdminOpen(false)}
           />
         )}
       </div>
