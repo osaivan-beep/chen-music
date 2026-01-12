@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CarouselImage } from '../types';
 
 interface CarouselProps {
@@ -8,100 +8,103 @@ interface CarouselProps {
 
 export const Carousel: React.FC<CarouselProps> = ({ images }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isAutoScrolling = useRef(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    if (!images || !Array.isArray(images) || images.length === 0) return;
+    if (!images || images.length === 0) return;
     const container = scrollRef.current;
     if (!container) return;
 
+    const handleScroll = () => {
+      const scrollPosition = container.scrollLeft;
+      const cardWidth = container.clientWidth * 0.9; 
+      const desktopCardWidth = 600; 
+      
+      const effectiveWidth = window.innerWidth < 768 ? cardWidth : desktopCardWidth;
+      const index = Math.round(scrollPosition / effectiveWidth);
+      setActiveIndex(Math.min(index, images.length - 1));
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    
     const autoScroll = () => {
-      if (!isAutoScrolling.current) return;
-      const cardWidth = 420; // 調整卡片滾動寬度
+      if (!container) return;
       if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - 50)) {
         container.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
-        container.scrollBy({ left: cardWidth, behavior: 'smooth' });
+        container.scrollBy({ left: window.innerWidth < 768 ? window.innerWidth * 0.85 : 600, behavior: 'smooth' });
       }
     };
 
-    const timer = setInterval(autoScroll, 5000);
-    return () => clearInterval(timer);
+    const timer = setInterval(autoScroll, 10000);
+    return () => {
+      clearInterval(timer);
+      container.removeEventListener('scroll', handleScroll);
+    };
   }, [images]);
 
-  if (!images || !Array.isArray(images) || images.length === 0) {
-    return (
-      <div className="pt-36 pb-24 text-center text-white/20 italic tracking-widest">
-        Loading Curated Gallery...
-      </div>
-    );
-  }
+  if (!images || images.length === 0) return null;
 
   return (
-    <section className="relative pt-36 pb-32 overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      
+    <section className="relative pt-36 pb-12 overflow-hidden bg-[#000]">
+      {/* 裝飾性背景文字 - 模仿 ivan-ai 风格 */}
+      <div className="absolute top-20 left-12 pointer-events-none opacity-[0.03] select-none">
+        <span className="text-[15vw] font-serif font-black tracking-tighter uppercase leading-none block">Gallery</span>
+      </div>
+
       <div 
         ref={scrollRef}
-        onMouseEnter={() => isAutoScrolling.current = false}
-        onMouseLeave={() => isAutoScrolling.current = true}
-        className="relative z-10 flex overflow-x-auto gap-8 md:gap-14 px-8 md:px-[15vw] no-scrollbar snap-x snap-mandatory scroll-smooth pb-10"
+        className="relative z-10 flex overflow-x-auto gap-6 md:gap-10 px-6 md:px-[10vw] no-scrollbar snap-x snap-mandatory scroll-smooth pb-12"
       >
-        {images.map((image) => (
+        {images.slice(0, 6).map((image, idx) => (
           <div
             key={image.id}
-            className="flex-none w-[80vw] md:w-[400px] aspect-[9/13] relative rounded-[3.5rem] overflow-hidden snap-center group border border-white/5 bg-neutral-900 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.8)] transition-all duration-1000 hover:border-amber-500/40 hover:shadow-amber-500/5 hover:-translate-y-2"
+            className="flex-none w-[88vw] md:w-[560px] aspect-[4/5] relative rounded-[2px] overflow-hidden snap-center group border border-white/[0.03] bg-neutral-900 transition-all duration-1000"
           >
-            {/* 圖片層 */}
-            <div className="absolute inset-0 overflow-hidden bg-neutral-950">
+            {/* 圖片層 - 緩慢縮放效果 */}
+            <div className="absolute inset-0 overflow-hidden">
               <img
                 src={image.url}
                 alt={image.title}
-                className="w-full h-full object-cover transition-transform duration-[15s] ease-out group-hover:scale-110 opacity-80 group-hover:opacity-100"
-                loading="eager"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://images.unsplash.com/photo-1514119412350-e174d90d280e?auto=format&fit=crop&q=80&w=800"; // 備用優美背景
-                  console.error(`圖片路徑無效: ${image.url}`);
-                }}
+                className="w-full h-full object-cover img-zoom opacity-50 group-hover:opacity-100 transition-all duration-[4s] ease-out scale-105 group-hover:scale-110"
               />
-              {/* 高級漸層遮罩 */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80 opacity-90 group-hover:opacity-40 transition-opacity duration-[2s]" />
             </div>
 
-            {/* 文字內容區 */}
-            <div className="absolute inset-x-0 bottom-0 p-8 transform transition-all duration-700">
-              <div className="backdrop-blur-xl bg-black/40 border border-white/10 p-7 rounded-[2.5rem] transform translate-y-4 group-hover:translate-y-0 transition-all duration-700 shadow-2xl overflow-hidden relative">
-                {/* 內部微光 */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl -mr-16 -mt-16 pointer-events-none" />
-                
-                <div className="mb-4">
-                  <span className="inline-block text-[8px] tracking-[0.5em] text-amber-500 uppercase font-black bg-amber-500/5 px-4 py-1.5 rounded-full border border-amber-500/10 opacity-0 group-hover:opacity-100 transition-all duration-1000 transform scale-75 group-hover:scale-100 origin-left">
-                    Masterpiece
-                  </span>
-                </div>
-                
-                <h3 className="text-2xl md:text-3xl font-serif text-white mb-2 tracking-widest leading-tight group-hover:text-gold-enhanced transition-colors duration-500">
-                  {image.title}
-                </h3>
-                <p className="text-[10px] text-white/40 tracking-[0.3em] uppercase font-light italic">
+            {/* 文字與資訊 - 極簡風格 */}
+            <div className="absolute inset-0 p-10 md:p-12 flex flex-col justify-end z-20">
+              <div className="overflow-hidden">
+                <p className="text-[10px] text-amber-500/80 tracking-[0.6em] uppercase font-bold mb-3 transform translate-y-10 group-hover:translate-y-0 transition-transform duration-1000">
                   {image.subtitle}
                 </p>
+                <h3 className="text-2xl md:text-3xl font-serif text-white tracking-[0.1em] font-light leading-tight transform translate-y-10 group-hover:translate-y-0 transition-transform duration-1000 delay-100">
+                  {image.title}
+                </h3>
               </div>
+            </div>
+            
+            {/* 編號裝飾 */}
+            <div className="absolute top-8 right-8 text-[10px] font-mono text-white/20 tracking-widest">
+              {String(idx + 1).padStart(2, '0')} / 06
             </div>
           </div>
         ))}
       </div>
 
-      {/* 底部裝飾性進度條 */}
-      <div className="flex justify-center items-center gap-10">
-        <div className="h-[0.5px] w-32 bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
-        <div className="flex gap-2">
+      {/* 進度控制條 */}
+      <div className="mt-4 max-w-[1400px] mx-auto px-10 flex items-center justify-center">
+        <div className="flex gap-4 items-center">
            {images.slice(0, 6).map((_, i) => (
-             <div key={i} className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-amber-500/50 transition-colors" />
+             <button 
+               key={i} 
+               onClick={() => {
+                 const cardWidth = window.innerWidth < 768 ? (window.innerWidth * 0.88 + 24) : 600;
+                 scrollRef.current?.scrollTo({ left: i * cardWidth, behavior: 'smooth' });
+               }}
+               className={`h-[1px] transition-all duration-700 ${activeIndex === i ? 'w-16 bg-white' : 'w-6 bg-white/10 hover:bg-white/30'}`} 
+             />
            ))}
         </div>
-        <div className="h-[0.5px] w-32 bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
       </div>
     </section>
   );

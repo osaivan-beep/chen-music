@@ -1,8 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Music as MusicIcon, ChevronRight, ListMusic } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 import { MusicTrack } from '../types';
-import { CATEGORIES } from '../constants';
 
 interface MusicPlayerProps {
   tracks: MusicTrack[];
@@ -11,18 +10,15 @@ interface MusicPlayerProps {
 }
 
 export const MusicPlayer: React.FC<MusicPlayerProps> = ({ tracks, externalControl, onPlaybackChange }) => {
-  const [selectedCategory, setSelectedCategory] = useState('禎心推薦');
   const [currentTrackIndex, setCurrentTrackIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const filteredTracks = tracks.filter(t => selectedCategory === '禎心推薦' || t.category === selectedCategory);
-  const currentTrack = currentTrackIndex !== null ? filteredTracks[currentTrackIndex] : null;
+  const displayTracks = tracks.slice(0, 12);
+  const currentTrack = currentTrackIndex !== null ? displayTracks[currentTrackIndex] : null;
 
   useEffect(() => {
-    if (externalControl !== undefined) {
-      setIsPlaying(externalControl);
-    }
+    if (externalControl !== undefined) setIsPlaying(externalControl);
   }, [externalControl]);
 
   useEffect(() => {
@@ -50,107 +46,93 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ tracks, externalContro
     }
   };
 
-  const nextTrack = () => {
-    if (currentTrackIndex !== null && filteredTracks.length > 0) {
-      setCurrentTrackIndex((currentTrackIndex + 1) % filteredTracks.length);
-    }
-  };
-
-  const prevTrack = () => {
-    if (currentTrackIndex !== null && filteredTracks.length > 0) {
-      setCurrentTrackIndex((currentTrackIndex - 1 + filteredTracks.length) % filteredTracks.length);
-    }
-  };
-
   return (
-    <div id="music-section" className="px-6 py-16 max-w-[1400px] mx-auto">
-      <div className="flex flex-col gap-14">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 border-b border-white/5 pb-12">
-          <div className="text-center md:text-left">
-            <h3 className="text-2xl md:text-3xl font-serif font-light text-grey-matte mb-3 tracking-[0.15em]">禎藏律動</h3>
-            <p className="text-neutral-600 text-[10px] md:text-xs tracking-[0.3em] uppercase font-light">Curated collection of favorite rhythms</p>
-          </div>
-          
-          <div className="flex flex-wrap justify-center gap-2.5">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
-                onClick={() => { setSelectedCategory(cat); setCurrentTrackIndex(null); setIsPlaying(false); onPlaybackChange?.(false); }}
-                className={`px-7 py-2.5 rounded-full text-[11px] font-medium tracking-[0.1em] transition-all duration-500 border ${
-                  selectedCategory === cat 
-                    ? 'bg-gold-matte text-black/70' 
-                    : 'bg-transparent border-white/10 text-neutral-600 hover:border-white/30 hover:text-neutral-400'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {filteredTracks.map((track, idx) => (
-            <div 
-              key={track.id} 
-              onClick={() => handleTrackSelect(idx)}
-              className={`group flex items-center gap-5 p-4 rounded-[2rem] border transition-all duration-700 cursor-pointer ${
-                currentTrackIndex === idx 
-                  ? 'bg-white/[0.05] border-white/20 shadow-xl' 
-                  : 'bg-white/[0.01] border-white/5 hover:bg-white/[0.03] hover:border-white/10'
-              }`}
-            >
-              <div className="relative w-14 h-14 rounded-2xl overflow-hidden flex-none">
-                <img src={track.coverUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 group-hover:opacity-100" />
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  {currentTrackIndex === idx && isPlaying ? <Pause size={16} fill="#888" /> : <Play size={16} fill="#888" className="ml-1" />}
-                </div>
-              </div>
-              <div className="flex-grow overflow-hidden">
-                <h4 className={`font-medium text-[13px] truncate tracking-wide ${currentTrackIndex === idx ? 'text-amber-500/80' : 'text-neutral-400'}`}>{track.title}</h4>
-                <p className="text-neutral-600 text-[9px] tracking-[0.15em] uppercase mt-1.5 truncate font-light">{track.artist}</p>
-              </div>
-              <div className="flex-none opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                <ChevronRight size={14} className="text-neutral-700" />
-              </div>
-            </div>
-          ))}
-        </div>
+    <div id="music-section" className="px-6 py-20 max-w-[1200px] mx-auto bg-[#000]">
+      
+      {/* 藝文引言 - 增加呼吸感 */}
+      <div className="flex flex-col items-start text-left mb-20 animate-fade-up max-w-2xl">
+        <div className="w-12 h-[1px] bg-amber-500/50 mb-8" />
+        <h2 className="text-3xl md:text-4xl font-serif font-light text-white tracking-[0.2em] mb-8 leading-tight">
+          Soul Resonance<br/>
+          <span className="text-neutral-600 text-lg tracking-[0.1em] font-sans italic">以琴聲尋找內心的平靜</span>
+        </h2>
+        <p className="text-[14px] text-neutral-500 font-serif font-light tracking-widest leading-[2.2] italic">
+          當世界偶爾變得吵雜，願流動的音符能帶給你一點安定的力量。<br/>
+          此刻，請閉上眼睛，讓心跟著節奏慢下來。
+        </p>
       </div>
 
+      {/* 歌曲清單 - 模仿高品質專輯列表 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-2">
+        {displayTracks.map((track, idx) => (
+          <button 
+            key={track.id} 
+            onClick={() => handleTrackSelect(idx)}
+            className={`flex items-center justify-between py-8 px-2 border-b transition-all duration-1000 group text-left ${
+              currentTrackIndex === idx 
+                ? 'border-white/20' 
+                : 'border-white/[0.04] hover:border-white/10'
+            }`}
+          >
+            <div className="flex items-center gap-8">
+              <span className={`text-[10px] font-mono transition-colors duration-700 ${currentTrackIndex === idx ? 'text-amber-500' : 'text-neutral-700 group-hover:text-neutral-400'}`}>
+                {String(idx + 1).padStart(2, '0')}
+              </span>
+              <div className="flex flex-col">
+                 <span className={`text-[15px] font-serif font-light tracking-[0.15em] mb-2 transition-all duration-700 ${currentTrackIndex === idx ? 'text-white' : 'text-neutral-500 group-hover:text-neutral-300'}`}>
+                   {track.title}
+                 </span>
+                 <span className={`text-[11px] leading-relaxed tracking-wider font-light transition-all duration-700 ${currentTrackIndex === idx ? 'text-neutral-400' : 'text-neutral-700 group-hover:text-neutral-600'}`}>
+                   {track.artist.split('\n')[0]}
+                 </span>
+              </div>
+            </div>
+            
+            <div className={`flex-shrink-0 transition-all duration-700 ${
+              currentTrackIndex === idx 
+                ? 'text-amber-500 scale-125' 
+                : 'text-neutral-800 opacity-0 group-hover:opacity-100 group-hover:text-neutral-400'
+            }`}>
+              {currentTrackIndex === idx && isPlaying ? (
+                <div className="flex gap-1 items-end h-4">
+                  <div className="w-[2px] h-3 bg-current animate-[music-bar_0.6s_ease-in-out_infinite]" />
+                  <div className="w-[2px] h-4 bg-current animate-[music-bar_0.8s_ease-in-out_infinite_0.1s]" />
+                  <div className="w-[2px] h-2 bg-current animate-[music-bar_0.7s_ease-in-out_infinite_0.2s]" />
+                </div>
+              ) : (
+                <Play size={14} strokeWidth={1.5} />
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* 底部播放器 */}
       {currentTrack && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-[100] bg-[#0a0a0b]/90 backdrop-blur-3xl border border-white/10 rounded-full p-2 shadow-2xl animate-fade-up flex items-center gap-4">
-          <audio 
-            ref={audioRef}
-            src={currentTrack.url}
-            onEnded={nextTrack}
-            autoPlay={isPlaying}
-          />
-          <div className="relative flex-none">
-            <img src={currentTrack.coverUrl} className={`w-11 h-11 rounded-full object-cover border border-white/10 opacity-70 ${isPlaying ? 'animate-spin-slow opacity-100' : ''}`} />
-            {isPlaying && (
-               <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-[#0a0a0b] animate-pulse" />
-            )}
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-[95%] max-w-xl z-[100] bg-[#0c0c0c]/90 backdrop-blur-3xl border border-white/[0.08] rounded-2xl p-4 flex items-center gap-6 shadow-[0_30px_60px_rgba(0,0,0,0.8)] animate-fade-up">
+          <audio ref={audioRef} src={currentTrack.url} onEnded={() => setCurrentTrackIndex((currentTrackIndex! + 1) % displayTracks.length)} />
+          <div className="relative shrink-0 overflow-hidden rounded-lg">
+            <img src={currentTrack.coverUrl} className={`w-14 h-14 object-cover transition-all duration-[3s] ${isPlaying ? 'scale-110 rotate-3' : 'grayscale opacity-50'}`} />
           </div>
           <div className="flex-grow overflow-hidden">
-            <p className="text-neutral-400 text-[11px] font-medium truncate tracking-wide">{currentTrack.title}</p>
-            <p className="text-neutral-600 text-[9px] tracking-[0.1em] uppercase truncate font-light mt-0.5">{currentTrack.artist}</p>
+            <p className="text-white text-[13px] font-serif font-light truncate tracking-[0.2em] mb-1">{currentTrack.title}</p>
+            <p className="text-neutral-600 text-[9px] tracking-[0.4em] uppercase font-bold italic">Now Playing</p>
           </div>
-          <div className="flex items-center gap-2.5 pr-3">
-            <button onClick={prevTrack} className="text-neutral-700 hover:text-neutral-400 transition-colors"><SkipBack size={14} /></button>
-            <button 
-              onClick={() => {
-                  const s = !isPlaying;
-                  setIsPlaying(s);
-                  onPlaybackChange?.(s);
-              }}
-              className="w-9 h-9 bg-neutral-800 text-neutral-400 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all border border-white/5"
-            >
-              {isPlaying ? <Pause size={16} fill="#888" /> : <Play size={16} fill="#888" className="ml-0.5" />}
-            </button>
-            <button onClick={nextTrack} className="text-neutral-700 hover:text-neutral-400 transition-colors"><SkipForward size={14} /></button>
-          </div>
+          <button 
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="w-12 h-12 bg-white/5 hover:bg-white/10 text-white rounded-full flex items-center justify-center transition-all shrink-0 border border-white/10 group"
+          >
+            {isPlaying ? <Pause size={18} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" /> : <Play size={18} strokeWidth={1.5} className="ml-1 group-hover:scale-110 transition-transform" />}
+          </button>
         </div>
       )}
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes music-bar {
+          0%, 100% { height: 4px; }
+          50% { height: 16px; }
+        }
+      `}} />
     </div>
   );
 };
