@@ -17,15 +17,8 @@ interface ErrorBoundaryState {
   hasError: boolean;
 }
 
-/**
- * ErrorBoundary class component to catch rendering errors.
- */
-// Fix: Use React.Component to ensure inherited properties like 'props' and 'state' are correctly recognized by TypeScript.
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly declare state at the class level to resolve "Property 'state' does not exist" errors.
   state: ErrorBoundaryState = { hasError: false };
-
-  // Fix: Explicitly declare props at the class level to resolve "Property 'props' does not exist" errors.
   props: ErrorBoundaryProps;
 
   constructor(props: ErrorBoundaryProps) {
@@ -33,13 +26,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     this.props = props;
   }
 
-  // Static getDerivedStateFromError correctly updates state when an error is caught.
   static getDerivedStateFromError(_error: any): ErrorBoundaryState {
     return { hasError: true };
   }
   
   render(): ReactNode {
-    // Fix: Accessing state inherited from React.Component now recognized by TypeScript.
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6 text-center">
@@ -53,7 +44,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         </div>
       );
     }
-    // Fix: Accessing props inherited from React.Component now recognized by TypeScript.
     return this.props.children;
   }
 }
@@ -66,10 +56,22 @@ function App() {
 
   useEffect(() => {
     try {
-      const savedImages = localStorage.getItem('chen_music_carousel_v19');
-      const savedTracks = localStorage.getItem('chen_music_tracks_v19');
-      if (savedImages) setImages(JSON.parse(savedImages));
-      if (savedTracks) setTracks(JSON.parse(savedTracks));
+      // 提升版本號至 v21 以清除 v20 的舊快取
+      const savedImages = localStorage.getItem('chen_music_carousel_v21');
+      const savedTracks = localStorage.getItem('chen_music_tracks_v21');
+      
+      if (savedImages) {
+        setImages(JSON.parse(savedImages));
+      } else {
+        // 如果沒有 v21，則強制載入 Initial
+        setImages(INITIAL_CAROUSEL);
+      }
+      
+      if (savedTracks) {
+        setTracks(JSON.parse(savedTracks));
+      } else {
+        setTracks(INITIAL_TRACKS);
+      }
     } catch (e) {
       console.error("LocalStorage load error:", e);
     }
@@ -77,12 +79,12 @@ function App() {
 
   const handleUpdateImages = (newImages: CarouselImage[]) => {
     setImages(newImages);
-    localStorage.setItem('chen_music_carousel_v19', JSON.stringify(newImages));
+    localStorage.setItem('chen_music_carousel_v21', JSON.stringify(newImages));
   };
 
   const handleUpdateTracks = (newTracks: MusicTrack[]) => {
     setTracks(newTracks);
-    localStorage.setItem('chen_music_tracks_v19', JSON.stringify(newTracks));
+    localStorage.setItem('chen_music_tracks_v21', JSON.stringify(newTracks));
   };
 
   return (
