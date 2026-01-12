@@ -55,8 +55,8 @@ function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
 
-  // 使用 v25 版本號來跳過之前所有錯誤的 localStorage
-  const VERSION_KEY = 'v25';
+  // 版本號升級至 v35
+  const VERSION_KEY = 'v35';
 
   useEffect(() => {
     try {
@@ -67,6 +67,9 @@ function App() {
         setImages(JSON.parse(savedImages));
       } else {
         setImages(INITIAL_CAROUSEL);
+        // 清除舊版本的殘留資料，避免路徑衝突
+        localStorage.removeItem('chen_music_carousel_v30');
+        localStorage.removeItem('chen_music_tracks_v30');
       }
       
       if (savedTracks) {
